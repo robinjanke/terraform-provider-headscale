@@ -28,6 +28,9 @@ type V1CreateUserRequest struct {
 
 	// picture Url
 	PictureURL string `json:"pictureUrl,omitempty"`
+
+	// provider Id (OIDC iss+sub). When set, Headscale creates an OIDC user.
+	ProviderID string `json:"providerId,omitempty"`
 }
 
 // Validate validates this v1 create user request

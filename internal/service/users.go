@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/awlsring/terraform-provider-headscale/internal/gen/client/headscale_service"
 	"github.com/awlsring/terraform-provider-headscale/internal/gen/models"
@@ -24,6 +25,54 @@ func (h *HeadscaleService) ListUsers(ctx context.Context) ([]*models.V1User, err
 	}
 
 	return resp.Payload.Users, nil
+}
+
+// FindExternalUser looks up an OIDC user by provider_id (preferred) or name.
+// CLI users (no provider_id) with a matching name are reported via cliConflict.
+func (h *HeadscaleService) FindExternalUser(ctx context.Context, name, providerID string) (user *models.V1User, cliConflict bool, err error) {
+	users, err := h.ListUsers(ctx)
+	if err != nil {
+		return nil, false, err
+	}
+
+	normalizedProviderID := strings.TrimSpace(providerID)
+	normalizedName := strings.TrimSpace(strings.ToLower(name))
+
+	if normalizedProviderID != "" {
+		for _, u := range users {
+			if u == nil {
+				continue
+			}
+			if strings.TrimSpace(u.ProviderID) == normalizedProviderID {
+				return u, false, nil
+			}
+		}
+	}
+
+	if normalizedName != "" {
+		var oidcMatch *models.V1User
+		for _, u := range users {
+			if u == nil {
+				continue
+			}
+			if strings.TrimSpace(strings.ToLower(u.Name)) != normalizedName {
+				continue
+			}
+			if strings.TrimSpace(u.ProviderID) != "" || strings.EqualFold(strings.TrimSpace(u.Provider), "oidc") {
+				if oidcMatch != nil {
+					return nil, false, errors.New("multiple OIDC users found matching name")
+				}
+				oidcMatch = u
+				continue
+			}
+			cliConflict = true
+		}
+		if oidcMatch != nil {
+			return oidcMatch, false, nil
+		}
+	}
+
+	return nil, cliConflict, nil
 }
 
 type GetUserInput struct {
@@ -64,6 +113,7 @@ type CreateUserInput struct {
 	Email       string
 	DisplayName string
 	PictureURL  string
+	ProviderID  string
 }
 
 func (h *HeadscaleService) CreateUser(ctx context.Context, input CreateUserInput) (*models.V1User, error) {
@@ -74,6 +124,7 @@ func (h *HeadscaleService) CreateUser(ctx context.Context, input CreateUserInput
 		Email:       input.Email,
 		DisplayName: input.DisplayName,
 		PictureURL:  input.PictureURL,
+		ProviderID:  input.ProviderID,
 	})
 
 	resp, err := h.client.HeadscaleService.HeadscaleServiceCreateUser(request)

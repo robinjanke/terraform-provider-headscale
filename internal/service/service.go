@@ -35,6 +35,7 @@ type Headscale interface {
 
 	GetUser(ctx context.Context, input GetUserInput) (*models.V1User, error)
 	ListUsers(ctx context.Context) ([]*models.V1User, error)
+	FindExternalUser(ctx context.Context, name, providerID string) (user *models.V1User, cliConflict bool, err error)
 	CreateUser(ctx context.Context, input CreateUserInput) (*models.V1User, error)
 	DeleteUser(ctx context.Context, userId string) error
 	RenameUser(ctx context.Context, name string, userId string) (*models.V1User, error)

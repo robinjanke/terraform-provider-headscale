@@ -142,6 +142,7 @@ func (p *HeadscaleProvider) DataSources(ctx context.Context) []func() datasource
 		route.DataSource,
 		device_route.DataSource,
 		user.DataSource,
+		user.DataSourceExternal,
 		user.DataSourceMultiple,
 		apikey.DataSource,
 		preauthkey.DataSource,
