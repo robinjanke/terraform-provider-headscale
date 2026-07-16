@@ -1,3 +1,8 @@
+
+## 0.5.2-dd.1
+
+- Add `headscale_external_user` data source with `create_if_not_exists`
+- Pass `providerId` on CreateUser for OIDC pre-provisioning
 # Changelog
 
 All notable changes to this project will be documented in this file.
