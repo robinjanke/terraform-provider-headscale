@@ -31,7 +31,7 @@ type externalUserModel struct {
 	DisplayName       types.String `tfsdk:"display_name"`
 	Email             types.String `tfsdk:"email"`
 	ProfilePictureURL types.String `tfsdk:"profile_picture_url"`
-	Provider          types.String `tfsdk:"provider"`
+	AuthProvider      types.String `tfsdk:"auth_provider"`
 	CreatedAt         types.String `tfsdk:"created_at"`
 	CreateIfNotExists types.Bool   `tfsdk:"create_if_not_exists"`
 }
@@ -85,9 +85,9 @@ func (d *externalUserDataSource) Schema(_ context.Context, _ datasource.SchemaRe
 				Computed:    true,
 				Description: "The Headscale user id.",
 			},
-			"provider": schema.StringAttribute{
+			"auth_provider": schema.StringAttribute{
 				Computed:    true,
-				Description: "Auth provider of the user (expected: oidc).",
+				Description: "Auth provider of the user (expected: oidc). Named auth_provider because provider is reserved by Terraform.",
 			},
 			"created_at": schema.StringAttribute{
 				Computed:    true,
@@ -173,7 +173,7 @@ func (d *externalUserDataSource) Read(ctx context.Context, req datasource.ReadRe
 		ID:                types.StringValue(user.ID),
 		Name:              types.StringValue(user.Name),
 		ProviderID:        types.StringValue(user.ProviderID),
-		Provider:          types.StringValue(user.Provider),
+		AuthProvider:      types.StringValue(user.Provider),
 		CreatedAt:         types.StringValue(user.CreatedAt.DeepCopy().String()),
 		CreateIfNotExists: types.BoolValue(createIfNotExists),
 	}
